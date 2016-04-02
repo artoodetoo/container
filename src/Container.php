@@ -84,15 +84,7 @@ class Container implements ContainerInterface
             $factory = $this->resolve($factoryName);
             $service = call_user_func_array([$factory, $methodName], $args);
         } else {
-            switch (count($args)) {
-            case 0: $service = new $class(); break;
-            case 1: $service = new $class($args[0]); break;
-            case 2: $service = new $class($args[0], $args[1]); break;
-            case 3: $service = new $class($args[0], $args[1], $args[2]); break;
-            default:
-                $r = new \ReflectionClass($class);
-                $service = $r->newInstanceArgs($args);
-            }
+            $service = new $class(...$args); // cool php 5.6+ feature
             if ($service instanceof ContainerAwareInterface) {
                 $service->setContainer($this);
             }
