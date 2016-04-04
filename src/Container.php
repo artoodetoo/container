@@ -2,10 +2,10 @@
 
 namespace R2\DependencyInjection;
 
+use InvalidArgumentException;
 use R2\DependencyInjection\ContainerInterface;
 use R2\DependencyInjection\ContainerAwareInterface;
 
-use InvalidArgumentException as ArgsException;
 
 /**
  * Service Container
@@ -13,12 +13,7 @@ use InvalidArgumentException as ArgsException;
 class Container implements ContainerInterface
 {
     private $shared = [];
-
-    private $config = [
-        'config'    => [],
-        'shared'    => [],
-        'multiple'  => [],
-    ];
+    private $config = [ 'config' => [], 'shared' => [], 'multiple'  => [] ];
 
     public function __construct(array $config = null)
     {
@@ -32,14 +27,126 @@ class Container implements ContainerInterface
         $this->config = array_replace_recursive($this->config, $config);
     }
 
+    /**
+     * Gets a service.
+     *
+     * @param string $id The service identifier
+     *
+     * @return mixed The associated service
+     */
+    public function get($id)
+    {
+        if (isset($this->shared[$id])) {
+            return $this->shared[$id];
+        }
+        $toShare = false;
+        if (isset($this->config['shared'][$id])) {
+            $toShare = true;
+            $config = (array) $this->config['shared'][$id];
+        } elseif (isset($this->config['multiple'][$id])) {
+            $config = (array) $this->config['multiple'][$id];
+        } else {
+            throw new \InvalidArgumentException('Wrong property name '.$id);
+        }
+        // N.B. "class" is just the first element, regardless of its key
+        $class = array_shift($config);
+        $args = [];
+        // If you want to susbtitute some values in arguments, use non-numeric keys for them
+        foreach ($config as $k => $v) {
+            $args[] = is_numeric($k) ? $v : $this->resolve($v);
+        }
+        // Special case: reference to factory method
+        if ($class{0} == '@' && strpos($class, ':') !== false) {
+            list($factoryName, $methodName) = explode(':', $class);
+            $factory = $this->get($factoryName);
+            $service = call_user_func_array([$factory, $methodName], $args);
+        } else {
+            $service = new $class(...$args); // cool php 5.6+ feature
+            if ($service instanceof ContainerAwareInterface) {
+                $service->setContainer($this);
+            }
+        }
+        if ($toShare) {
+            $this->shared[$id] = $service;
+        }
+        return $service;
+    }
+
+    /**
+     * Sets a service.
+     * Provides a fluent interface.
+     *
+     * @param string $id      The service identifier
+     * @param mixed  $service The service instance
+     *
+     * @return ContainerInterface Self reference
+     */
+    public function set($id, $service)
+    {
+        return $this->shared[$id] = $service;
+    }
+
+    /**
+     * Gets a parameter.
+     *
+     * @param string $name The parameter name
+     *
+     * @return mixed The parameter value
+     */
+    public function getParameter($name, $default = null)
+    {
+        $segments = explode('.', $name);
+        $ptr =& $this->config;
+        foreach ($segments as $s) {
+            if (!array_key_exists($s, $ptr)) {
+                return $default;
+            }
+            $ptr =& $ptr[$s];
+        }
+
+        return $ptr;
+    }
+
+    /**
+     * Sets a parameter.
+     * Provides a fluent interface.
+     *
+     * @param string $name  The parameter name
+     * @param mixed  $value The parameter value
+     *
+     * @return ContainerInterface Self reference
+     */
+    public function setParameter($name, $value)
+    {
+        $segments = explode('.', $name);
+        $n = count($segments);
+        $ptr =& $this->config;
+        foreach ($segments as $s) {
+            if (--$n) {
+                if (!array_key_exists($s, $ptr)) {
+                    $ptr[$s] = [];
+                } elseif (!is_array($ptr[$s])) {
+                    throw new \InvalidArgumentException("Scalar \"{$s}\" in the path \"{$name}\"");
+                }
+                $ptr =& $ptr[$s];
+            } else {
+                $ptr[$s] = $value;
+            }
+        }
+
+        return $this;
+    }
+
     public function resolve($value)
     {
         $matches = null;
         if (is_string($value) && strpos($value, '%') !== false) {
-            if (preg_match('~^%([a-z_0-9.]+)%$~', $value, $matches)) {
-                return $this->substitute($matches);
+            // whole string substitution can return any type of value
+            if (preg_match('~^%(\w+)%$~', $value, $matches)) {
+                $value = $this->substitute($matches);
+            // partial string substitution casts value to string
             } else {
-                $value = preg_replace_callback('~%([a-z_0-9.]+)%~', [$this, 'substitute'], $value);
+                $value = preg_replace_callback('~%(\w+)%~', [$this, 'substitute'], $value);
             }
         } elseif (is_string($value) && isset($value{0}) && $value{0} == '@') {
             return $this->get(substr($value, 1));
@@ -59,80 +166,4 @@ class Container implements ContainerInterface
         }
         return '';
     }
-
-    public function get($id)
-    {
-        if (isset($this->shared[$id])) {
-            return $this->shared[$id];
-        }
-        $toShare = false;
-        if (isset($this->config['shared'][$id])) {
-            $toShare = true;
-            $config = (array) $this->config['shared'][$id];
-        } elseif (isset($this->config['multiple'][$id])) {
-            $config = (array) $this->config['multiple'][$id];
-        } else {
-            throw new ArgsException('Wrong property name '.$id);
-        }
-        $class = array_shift($config);
-        $args = [];
-        foreach ($config as $k => $v) {
-            $args[] = $k{0} == '%' ? $this->resolve($v) : $v;
-        }
-        if ($class{0} == '@' && strpos($class, ':') !== false) {
-            list($factoryName, $methodName) = explode(':', $class);
-            $factory = $this->resolve($factoryName);
-            $service = call_user_func_array([$factory, $methodName], $args);
-        } else {
-            $service = new $class(...$args); // cool php 5.6+ feature
-            if ($service instanceof ContainerAwareInterface) {
-                $service->setContainer($this);
-            }
-        }
-        if ($toShare) {
-            $this->shared[$id] = $service;
-        }
-        return $service;
-    }
-
-    public function set($id, $service)
-    {
-        return $this->shared[$id] = $service;
-    }
-
-    public function getParameter($name, $default = null)
-    {
-        $segments = explode('.', $name);
-        $ptr =& $this->config;
-        foreach ($segments as $s) {
-            if (!array_key_exists($s, $ptr)) {
-                return $default;
-            }
-            $ptr =& $ptr[$s];
-        }
-
-        return $ptr;
-    }
-
-    public function setParameter($name, $value)
-    {
-        $segments = explode('.', $name);
-        $n = count($segments);
-        $ptr =& $this->config;
-        foreach ($segments as $s) {
-            if (--$n) {
-                if (!array_key_exists($s, $ptr)) {
-                    $ptr[$s] = [];
-                } elseif (!is_array($ptr[$s])) {
-                    throw new ArgsException("Scalar \"{$s}\" in the path \"{$name}\"");
-                }
-                $ptr =& $ptr[$s];
-            } else {
-                $ptr[$s] = $value;
-            }
-        }
-
-        return $this;
-    }
-
 }

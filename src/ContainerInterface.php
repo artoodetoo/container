@@ -9,7 +9,7 @@ interface ContainerInterface
      *
      * @param string $id The service identifier
      *
-     * @return object The associated service
+     * @return mixed The associated service
      */
     public function get($id);
     /**
@@ -17,9 +17,9 @@ interface ContainerInterface
      * Provides a fluent interface.
      *
      * @param string $id      The service identifier
-     * @param object $service The service instance
+     * @param mixed  $service The service instance
      *
-     * @return object Self reference
+     * @return ContainerInterface Self reference
      */
     public function set($id, $service);
     /**
@@ -37,7 +37,7 @@ interface ContainerInterface
      * @param string $name  The parameter name
      * @param mixed  $value The parameter value
      *
-     * @return object Self reference
+     * @return ContainerInterface Self reference
      */
     public function setParameter($name, $value);
 }
