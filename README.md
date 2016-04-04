@@ -89,11 +89,11 @@ $config = [
 ];
 ...
 setcookie(
-  $c->getParameter('cookie.name'),
+  $c->getParameter('options.cookie.name'),
   $value,
   0,
   '/',
-  $c->getParameter('cookie.domain')
+  $c->getParameter('options.cookie.domain')
 );
 
 ```
@@ -102,6 +102,6 @@ setcookie(
 
 Any part of configuration can be read by getParameter, including special sections `parameters`, `shared` and `multiple`.
 
-As for now, substitution patterns work in service sections only.
+As for now, substitution patterns work in service production only.
 
 Only parameters from `parameters` section can be used in substitution patterns.
