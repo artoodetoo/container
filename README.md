@@ -8,13 +8,24 @@ Container keep two kind of values: services and parameters.
 
 Service will instantiated when you call call it by name. _Usually_ service is object type, but not nesessary. Mind it as
 "product" of some routine.
+
 Methods: `get()` and `set()`.
 
 Parameters are not instantiating, they just stored and retrieved.
+
 Methods: `getParameter()` and `setParameter()`.
+
+## Install
+
+To install with composer:
+
+```sh
+composer require artoodetoo/container
+```
 
 ## Basic Usage
 
+### Configuration
 There are special configuraton sections:
 
 - `parameters` - used to store basic values, which can be substituted into service definition.
@@ -23,7 +34,7 @@ There are special configuraton sections:
 
 In other sections you can store any kind of information and retrieve it in dot notation (see below).
 
-Simple service definition:
+### Simple service definition
 ```php
 use R2\DependancyInjection\Container;
 
@@ -35,7 +46,7 @@ $config = [
 $c = new Container($config);
 $c->get('view')->render('index');
 ```
-Parameters substitution:
+### Parameters substitution
 ```php
 $config = [
   'parameters' => [
@@ -54,7 +65,7 @@ $config = [
 ...
 $c->get('view')->render('index');
 ```
-Factory method:
+### Factory method
 ```php
 $config = [
   'shared' => [
@@ -67,7 +78,7 @@ $config = [
 echo $c->get('user')->username;
 ```
 
-Extra data accessible in dot notation:
+### Parameters and dot notation:
 ```php
 $config = [
   'options' => [
@@ -86,3 +97,11 @@ setcookie(
 );
 
 ```
+
+### Notes and Limits
+
+Any part of configuration can be read by getParameter, including special sections `parameters`, `shared` and `multiple`.
+
+As for now, substitution patterns work in service sections only.
+
+Only parameters from `parameters` section can be used in substitution patterns.
