@@ -12,8 +12,8 @@ use R2\DependencyInjection\ContainerAwareInterface;
  */
 class Container implements ContainerInterface
 {
-    private $shared = [];
-    private $config = [ 'config' => [], 'shared' => [], 'multiple'  => [] ];
+    private $instances = [];
+    private $config = [ 'shared' => [], 'multiple'  => [] ];
 
     public function __construct(array $config = null)
     {
@@ -36,8 +36,8 @@ class Container implements ContainerInterface
      */
     public function get($id)
     {
-        if (isset($this->shared[$id])) {
-            return $this->shared[$id];
+        if (isset($this->instances[$id])) {
+            return $this->instances[$id];
         }
         $toShare = false;
         if (isset($this->config['shared'][$id])) {
@@ -67,7 +67,7 @@ class Container implements ContainerInterface
             }
         }
         if ($toShare) {
-            $this->shared[$id] = $service;
+            $this->instances[$id] = $service;
         }
         return $service;
     }
@@ -83,7 +83,7 @@ class Container implements ContainerInterface
      */
     public function set($id, $service)
     {
-        return $this->shared[$id] = $service;
+        return $this->instances[$id] = $service;
     }
 
     /**
@@ -161,8 +161,8 @@ class Container implements ContainerInterface
 
     protected function substitute($matches)
     {
-        if (array_key_exists($matches[1], $this->config['parameters'])) {
-            return $this->config['parameters'][$matches[1]];
+        if (array_key_exists($matches[1], $this->config)) {
+            return $this->config[$matches[1]];
         }
         return '';
     }

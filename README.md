@@ -28,9 +28,9 @@ composer require artoodetoo/container
 ### Configuration
 There are special configuraton sections:
 
-- `parameters` - used to store basic values, which can be substituted into service definition.
-- `shared` - defines shared services. after it created once it can be retrieved many times.
-- `multiple` - new instance created on every get() call
+- root used to store basic values, which can be substituted into service definition.
+- `shared` node defines shared services. after it created once it can be retrieved many times.
+- `multiple` node defines new instance created on every get() call
 
 In other sections you can store any kind of information and retrieve it in dot notation (see below).
 
@@ -49,15 +49,14 @@ $c->get('view')->render('index');
 ### Parameters substitution
 ```php
 $config = [
-  'parameters' => [
-    'root' => '\var\www\mysite',
-  ],
+  'ROOT'   => '\var\www\mysite',
+  'PUBLIC' => '\var\www\mysite\public',
   'shared' => [
     'view' => [
       'class=' => R2\Templating\Dirk::class,
       'options' => [
-          'views' => '%root%/views',
-          'cache' => '%root%/cache',
+          'views' => '%ROOT%/views',
+          'cache' => '%ROOT%/cache',
       ],
       ...
   ]
@@ -100,8 +99,8 @@ setcookie(
 
 ### Notes and Limits
 
-Any part of configuration can be read by getParameter, including special sections `parameters`, `shared` and `multiple`.
+Any part of configuration can be read by getParameter, including special sections `shared` and `multiple`.
 
 As for now, substitution patterns work in service production only.
 
-Only parameters from `parameters` section can be used in substitution patterns.
+Only parameters from config root can be used in substitution patterns. 
