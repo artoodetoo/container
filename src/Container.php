@@ -57,7 +57,7 @@ class Container implements ContainerInterface
         }
         // Special case: reference to factory method
         if ($class{0} == '@' && strpos($class, ':') !== false) {
-            list($factoryName, $methodName) = explode(':', $class);
+            list($factoryName, $methodName) = explode(':', substr($class, 1));
             $factory = $this->get($factoryName);
             $service = call_user_func_array([$factory, $methodName], $args);
         } else {
