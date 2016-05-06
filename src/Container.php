@@ -58,10 +58,10 @@ class Container implements ContainerInterface
         // Special case: reference to factory method
         if ($class{0} == '@' && strpos($class, ':') !== false) {
             list($factoryName, $methodName) = explode(':', substr($class, 1));
-            $factory = $this->get($factoryName);
-            $service = call_user_func_array([$factory, $methodName], $args);
+            $f = [$this->get($factoryName), $methodName]; /** @var string $f suppress IDE warning :( */
+            $service = $f(...$args);
         } else {
-            $service = new $class(...$args); // cool php 5.6+ feature
+            $service = new $class(...$args);
             if ($service instanceof ContainerAwareInterface) {
                 $service->setContainer($this);
             }
