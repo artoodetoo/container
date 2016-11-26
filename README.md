@@ -104,3 +104,7 @@ Any part of configuration can be read by getParameter, including special section
 As for now, substitution patterns work in service production only.
 
 Only parameters from config root can be used in substitution patterns. 
+
+### License
+
+The Container is open-source software, licensed under the [MIT license](http://opensource.org/licenses/MIT)
