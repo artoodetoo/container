@@ -137,7 +137,7 @@ class Container implements ContainerInterface
         return $this;
     }
 
-    public function resolve($value)
+    protected function resolve($value)
     {
         $matches = null;
         if (is_string($value) && strpos($value, '%') !== false) {
