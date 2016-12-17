@@ -98,7 +98,7 @@ class Container implements ContainerInterface
         $segments = explode('.', $name);
         $ptr =& $this->config;
         foreach ($segments as $s) {
-            if (!array_key_exists($s, $ptr)) {
+            if (!is_array($ptr) || !array_key_exists($s, $ptr)) {
                 return $default;
             }
             $ptr =& $ptr[$s];
