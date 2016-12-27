@@ -83,7 +83,8 @@ class Container implements ContainerInterface
      */
     public function set($id, $service)
     {
-        return $this->instances[$id] = $service;
+        $this->instances[$id] = $service;
+        return $this;
     }
 
     /**
@@ -98,7 +99,7 @@ class Container implements ContainerInterface
         $segments = explode('.', $name);
         $ptr =& $this->config;
         foreach ($segments as $s) {
-            if (!is_array($ptr) || !array_key_exists($s, $ptr)) {
+            if (!isset($ptr[$s])) {
                 return $default;
             }
             $ptr =& $ptr[$s];
