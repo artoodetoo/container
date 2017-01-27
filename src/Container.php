@@ -17,6 +17,7 @@ class Container implements ContainerInterface
 
     public function __construct(array $config = null)
     {
+        $this->config['CONTAINER'] = $this;
         if (!empty($config)) {
             $this->config($config);
         }

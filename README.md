@@ -36,7 +36,7 @@ In other sections you can store any kind of information and retrieve it in dot n
 
 ### Simple service definition
 ```php
-use R2\DependancyInjection\Container;
+use R2\DependencyInjection\Container;
 
 $config = [
   'shared' => [
@@ -46,6 +46,7 @@ $config = [
 $c = new Container($config);
 $c->get('view')->render('index');
 ```
+
 ### Parameters substitution
 ```php
 $config = [
@@ -53,7 +54,7 @@ $config = [
   'PUBLIC' => '\var\www\mysite\public',
   'shared' => [
     'view' => [
-      'class=' => R2\Templating\Dirk::class,
+      'class' => R2\Templating\Dirk::class,
       'options' => [
           'views' => '%ROOT%/views',
           'cache' => '%ROOT%/cache',
@@ -64,6 +65,7 @@ $config = [
 ...
 $c->get('view')->render('index');
 ```
+
 ### Factory method
 ```php
 $config = [
@@ -75,6 +77,22 @@ $config = [
 ]
 ...
 echo $c->get('user')->username;
+```
+
+### Container injection
+There are two ways to inject container into service instance:  
+1. Add interface `R2\DependencyInjection\ContainerAwareInterface` to service class
+  and define setContainer() method.
+2. Substitute container in constructor parameters. It is special name `CONTAINER`:  
+```php
+$config = [
+  'shared' => [
+    'example' => [
+        'class' => Example::class,
+        'container' => '%CONTAINER%',
+    ],
+  ]
+];
 ```
 
 ### Parameters and dot notation:
