@@ -13,7 +13,7 @@ use R2\DependencyInjection\ContainerAwareInterface;
 class Container implements ContainerInterface
 {
     private $instances = [];
-    private $config = [ 'shared' => [], 'multiple'  => [] ];
+    private $config = ['shared' => [], 'multiple'  => []];
 
     public function __construct(array $config = null)
     {
@@ -98,12 +98,12 @@ class Container implements ContainerInterface
     public function getParameter($name, $default = null)
     {
         $segments = explode('.', $name);
-        $ptr =& $this->config;
+        $ptr = & $this->config;
         foreach ($segments as $s) {
             if (!isset($ptr[$s])) {
                 return $default;
             }
-            $ptr =& $ptr[$s];
+            $ptr = & $ptr[$s];
         }
 
         return $ptr;
@@ -122,7 +122,7 @@ class Container implements ContainerInterface
     {
         $segments = explode('.', $name);
         $n = count($segments);
-        $ptr =& $this->config;
+        $ptr = & $this->config;
         foreach ($segments as $s) {
             if (--$n) {
                 if (!array_key_exists($s, $ptr)) {
@@ -130,7 +130,7 @@ class Container implements ContainerInterface
                 } elseif (!is_array($ptr[$s])) {
                     throw new \InvalidArgumentException("Scalar \"{$s}\" in the path \"{$name}\"");
                 }
-                $ptr =& $ptr[$s];
+                $ptr = & $ptr[$s];
             } else {
                 $ptr[$s] = $value;
             }
